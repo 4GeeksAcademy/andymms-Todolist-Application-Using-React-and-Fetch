@@ -4,21 +4,58 @@ const ToDos = () => {
 
     let [task, setTask] = useState("");
     let [list, setList] = useState([]);
+    let [user, setUser] = useState("");
+    let [handleUser, setHandleUser] = useState("");
 
+    const createUser = () => {
+
+        const username = handleUser.trim();
+
+        fetch(`https://playground.4geeks.com/todo/users/${username}`, {
+            method: "POST",
+            body: JSON.stringify([]),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    setUser(username)
+                    alert(`User "${username}" successfully created!`)
+                    return response.json();
+                }
+
+                if (response.status === 400 || response.status === 422) {
+                    setUser(username)
+                    alert(`User "${username}" already exists. Loading list...`)
+                    throw new Error("User already exists or something failed.")
+                }
+            })
+
+            .catch(error => {
+                console.error("Creation Error:", error)
+            })
+    }
     const getList = () => {
 
-        fetch("https://playground.4geeks.com/todo/users/andymms")
+        fetch(`https://playground.4geeks.com/todo/todos/${user}`)
             .then(response => response.json())
-            .then(data => setList(data.todos))
+            .then(data => {
+                if (data.todos && Array.isArray(data.todos)) {
+                    setList(data.todos);
+                } else {
+                    setList([]);
+                }
+            })
             .catch(error => console.log("Error:", error))
 
     }
 
     useEffect(() => {
-
-        getList()
-
-    }, [])
+        if (user) {
+            getList();
+        }
+    }, [user])
 
     const addTask = () => {
 
@@ -28,7 +65,7 @@ const ToDos = () => {
             label: task
         };
 
-        fetch('https://playground.4geeks.com/todo/todos/andymms', {
+        fetch(`https://playground.4geeks.com/todo/todos/${user}`, {
             method: "POST",
             body: JSON.stringify(newTask),
             headers: {
@@ -115,8 +152,12 @@ const ToDos = () => {
                 </ul>
                 <p className='paper text-secondary'>{list.length} tasks left </p>
             </div>
-            <div className='text-center'>
+            <div className='container d-flex justify-content-center'>
                 <button className='btn btn-danger' onClick={removeAllTasks}>Remove all tasks</button>
+                <input type="text" className="ms-5 form-control" placeholder="Enter your username"
+                    style={{ width: 250 }}
+                    onChange={(e) => setHandleUser(e.target.value)} />
+                <button className='btn btn-success ms-2' onClick={createUser}>Create</button>
             </div>
         </>
     );
