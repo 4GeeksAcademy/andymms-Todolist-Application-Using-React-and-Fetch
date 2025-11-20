@@ -135,10 +135,12 @@ const ToDos = () => {
             <h1 className='my-5 text-center'>ToDos</h1>
             <div className='container shadow-lg p-0'>
                 <input type="text" className='form-control'
-                    placeholder='What do you have to do today?'
+                    placeholder={user ? 'What do you have to do today?': 
+                    'Please create a username below to start adding tasks'}
                     value={task}
                     onChange={(e) => setTask(e.target.value)}
-                    onKeyDown={enterKeyPressed} />
+                    onKeyDown={enterKeyPressed} 
+                    disabled={!user} />
                 <ul className='list-unstyled d-flex flex-column mb-0'>
                     {list.map((task) => (
                         <div id='task' className='d-flex border' key={task.id}>
