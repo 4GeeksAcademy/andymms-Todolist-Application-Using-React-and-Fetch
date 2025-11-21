@@ -2,10 +2,20 @@ import React, { useState, useEffect } from 'react';
 
 const ToDos = () => {
 
+    const storedUser = localStorage.getItem('todosUser');
+
     let [task, setTask] = useState("");
     let [list, setList] = useState([]);
-    let [user, setUser] = useState("");
-    let [handleUser, setHandleUser] = useState("");
+    let [user, setUser] = useState(storedUser || "");
+    let [handleUser, setHandleUser] = useState(storedUser || "");
+
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem('todosUser', user);
+        } else {
+            localStorage.removeItem('todosUser');
+        }
+    }, [user]);
 
     const createUser = () => {
 
@@ -28,7 +38,7 @@ const ToDos = () => {
                 if (response.status === 400 || response.status === 422) {
                     setUser(username)
                     alert(`User "${username}" already exists. Loading list...`)
-                    throw new Error("User already exists or something failed.")
+                    getList
                 }
             })
 
@@ -38,7 +48,7 @@ const ToDos = () => {
     }
     const getList = () => {
 
-        fetch(`https://playground.4geeks.com/todo/todos/${user}`)
+        fetch(`https://playground.4geeks.com/todo/users/${user}`)
             .then(response => response.json())
             .then(data => {
                 if (data.todos && Array.isArray(data.todos)) {
@@ -135,6 +145,15 @@ const ToDos = () => {
             });
     };
 
+    const clearUser = () => {
+        setUser("");
+        setHandleUser("");
+        setList([]);
+        localStorage.removeItem('todoUser');
+        alert("User cleared. Create or load a new username.");
+    };
+
+
     return (
         < >
             <h1 className='my-5 text-center'>ToDos</h1>
@@ -163,8 +182,21 @@ const ToDos = () => {
                 <button className='btn btn-danger' onClick={removeAllTasks}>Remove all tasks</button>
                 <input type="text" className="ms-5 form-control" placeholder="Enter your username"
                     style={{ width: 250 }}
-                    onChange={(e) => setHandleUser(e.target.value)} />
-                <button className='btn btn-success ms-2' onClick={createUser}>Create</button>
+                    onChange={(e) => setHandleUser(e.target.value)}
+                    disabled={user !== ""}
+                />
+                {!user && (
+                    <button className='btn btn-success ms-2' onClick={createUser}>
+                        Create / Load
+                    </button>
+                )}
+
+                {user && (
+                    <button className='btn btn-warning ms-2' onClick={clearUser}>
+                        Clear User ({user})
+                    </button>
+                )}
+
             </div>
         </>
     );
